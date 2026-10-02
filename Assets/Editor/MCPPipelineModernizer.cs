@@ -14,16 +14,18 @@ using UnityEngine.Rendering;
 // texture, colour, float and keyword translation matches Unity's supported
 // Built-In -> URP conversion exactly. It is the same machinery behind
 // Edit > Rendering > Materials > Convert All Built-In Materials to Current SRP,
-// scoped to Assets/MCP so your own materials are never touched.
+// scoped to the MCP pack so your own materials are never touched.
 public static class MCPPipelineModernizer
 {
     private const string MenuRoot = "Tools/Modernize MCP/";
+    private const string Mesh2DLitShaderName = "Universal Render Pipeline/2D/Mesh2D-Lit-Default";
+    private const string BuiltInStandardShaderName = "Standard";
 
     [MenuItem(MenuRoot + "Dry Run", priority = 0)]
     public static void DryRun()
     {
         var upgraders = FetchUpgraders();
-        if (upgraders == null || upgraders.Count == 0)
+        if (upgraders.Count == 0)
         {
             Debug.LogError("[MCP Modernize] No URP material upgraders available. " +
                            "Is a Universal Render Pipeline asset assigned to the active quality level?");
@@ -36,7 +38,6 @@ public static class MCPPipelineModernizer
 
         foreach (var mat in materials)
         {
-            // Read-only check: never call MaterialUpgrader.Upgrade here, it mutates.
             if (FindUpgrader(upgraders, mat) != null) { convertible++; continue; }
 
             string name = mat.shader != null ? mat.shader.name : "<missing shader>";
@@ -44,10 +45,14 @@ public static class MCPPipelineModernizer
             blocked[name] = n + 1;
         }
 
+        int broken = materials.Count(m => IsMesh2DLit(m));
+
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("[MCP Modernize] DRY RUN - nothing was modified");
-        sb.AppendLine($"  URP upgraders registered: {upgraders.Count}");
+        sb.AppendLine($"  URP upgraders registered: {upgraders.Count} (2D upgraders excluded)");
         sb.AppendLine($"  MCP materials found:      {materials.Count}");
+        sb.AppendLine($"  already on URP/Lit:       {materials.Count(m => IsUrpLit(m))}");
+        sb.AppendLine($"  stuck on the 2D shader:   {broken}");
         sb.AppendLine($"  auto-convertible:         {convertible}");
         sb.AppendLine($"  needing a hand port:      {materials.Count - convertible}");
         if (blocked.Count > 0)
@@ -64,15 +69,20 @@ public static class MCPPipelineModernizer
     public static void Apply()
     {
         var upgraders = FetchUpgraders();
-        if (upgraders == null || upgraders.Count == 0)
+        if (upgraders.Count == 0)
         {
             Debug.LogError("[MCP Modernize] No URP material upgraders available.");
             return;
         }
 
         var materials = FindMcpMaterials();
-        int converted = 0, skipped = 0;
         var failures = new List<string>();
+        int repaired = 0, converted = 0, skipped = 0;
+
+        var standardShader = Shader.Find(BuiltInStandardShaderName);
+        if (standardShader == null)
+            Debug.LogError("[MCP Modernize] Built-in Standard shader not found; " +
+                           "materials on the 2D shader cannot be reset for a clean re-upgrade.");
 
         try
         {
@@ -84,6 +94,13 @@ public static class MCPPipelineModernizer
 
                 try
                 {
+                    if (IsMesh2DLit(mat) && standardShader != null)
+                    {
+                        mat.shader = standardShader;
+                        EditorUtility.SetDirty(mat);
+                        repaired++;
+                    }
+
                     string message = null;
                     if (MaterialUpgrader.Upgrade(mat, upgraders, MaterialUpgrader.UpgradeFlags.None, ref message))
                     {
@@ -109,9 +126,10 @@ public static class MCPPipelineModernizer
         }
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"[MCP Modernize] converted {converted}, left alone {skipped}, failed {failures.Count}");
+        sb.AppendLine($"[MCP Modernize] reset {repaired} materials from the 2D shader, " +
+                      $"converted {converted}, left alone {skipped}, failed {failures.Count}");
         foreach (var f in failures.Take(25)) sb.AppendLine("  FAIL " + f);
-        sb.AppendLine("Open the scene and check the Game view; water and glass still need a manual port.");
+        sb.AppendLine("Open the scene and check the Game view; water, glass and sprite-based foliage still need a manual port.");
         Debug.Log(sb.ToString());
     }
 
@@ -125,7 +143,32 @@ public static class MCPPipelineModernizer
             return new List<MaterialUpgrader>();
         }
 
-        return MaterialUpgrader.FetchAllUpgradersForPipeline(pipelineType);
+        return MaterialUpgrader.FetchAllUpgradersForPipeline(pipelineType).Where(u => !Is2DUpgrader(u)).ToList();
+    }
+
+    // URP registers 2D converter upgraders for the same pipeline asset, and they
+    // claim "Standard" (and "Universal Render Pipeline/Lit") as a source shader
+    // for "Universal Render Pipeline/2D/Mesh2D-Lit-Default". Those targets only
+    // render with a 2D renderer and 2D lights, so a 3D scene using them shows up
+    // as magenta patches. Only the 3D upgraders are wanted here.
+    private static bool Is2DUpgrader(MaterialUpgrader upgrader)
+    {
+        return Contains2DPath(upgrader.OldShaderPath) || Contains2DPath(upgrader.NewShaderPath);
+    }
+
+    private static bool Contains2DPath(string shaderPath)
+    {
+        return shaderPath != null && shaderPath.IndexOf("/2D/", StringComparison.Ordinal) >= 0;
+    }
+
+    private static bool IsMesh2DLit(Material mat)
+    {
+        return mat != null && mat.shader != null && mat.shader.name == Mesh2DLitShaderName;
+    }
+
+    private static bool IsUrpLit(Material mat)
+    {
+        return mat != null && mat.shader != null && mat.shader.name == "Universal Render Pipeline/Lit";
     }
 
     private static MaterialUpgrader FindUpgrader(List<MaterialUpgrader> upgraders, Material material)
@@ -137,7 +180,14 @@ public static class MCPPipelineModernizer
 
     private static List<Material> FindMcpMaterials()
     {
-        return AssetDatabase.FindAssets("t:Material", new[] { "Assets/MCP" })
+        string root = MCPPack.Root;
+        if (root == null)
+        {
+            MCPPack.LogMissingRoot("FindMcpMaterials");
+            return new List<Material>();
+        }
+
+        return AssetDatabase.FindAssets("t:Material", new[] { root })
             .Select(AssetDatabase.GUIDToAssetPath)
             .Where(p => !string.IsNullOrEmpty(p))
             .Select(AssetDatabase.LoadAssetAtPath<Material>)
