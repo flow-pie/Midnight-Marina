@@ -13,8 +13,11 @@ public class CameraManager : MonoBehaviour
     public float cameraLookSpeed = 0.1f;
     public float cameraPivotSpeed = 1.0f;
     public float lookAngle;
+
     [Header("Camera Follow Settings")]
     public float pivotAngle;
+    public float minimumPivotAngle = -30;
+    public float maximumPivotAngle = 30;
 
     void Awake()
     {
@@ -47,6 +50,9 @@ public class CameraManager : MonoBehaviour
         if (inputManager == null) return;
         lookAngle += (inputManager.cameraInputX * cameraLookSpeed);
         pivotAngle -= (inputManager.cameraInputY * cameraPivotSpeed);
+
+        //clamp the pivot angle to prevent the camera from going too high or too low
+        pivotAngle = Mathf.Clamp(pivotAngle, minimumPivotAngle, maximumPivotAngle);
 
         //horizontal rotation of the camera
         rotation = Vector3.zero;
