@@ -10,7 +10,14 @@ public class PlayerMovement : MonoBehaviour
     public Transform cameraObject;
     Rigidbody playerRigidbody;
 
-    public float movementSpeed = 5f;
+    [Header("Movement Flags")]
+    public bool isSprinting;
+    public bool isWalking;
+
+    [Header("Movement Values")]
+    public float walkingSpeed = 1.5f;
+    public float runningSpeed = 5f;
+    public float sprintingSpeed = 10f;
     public float rotationSpeed = 10f;
 
     void Awake()
@@ -32,8 +39,22 @@ public class PlayerMovement : MonoBehaviour
 
         movementDirection.Normalize();
         movementDirection.y = 0;
+        
+        if(isSprinting)
+        {
+            movementDirection *= sprintingSpeed;
+        } else {
+            if(inputManager.moveAmount >= 0.5f)
+            {
+                movementDirection *= runningSpeed;
+                isWalking = false;
+            } else {
+                movementDirection *= walkingSpeed;
+                isWalking = true;
+            }
+        }
 
-        Vector3 movementVelocity = movementDirection * movementSpeed; //to determine final velocity of the player
+        Vector3 movementVelocity = movementDirection; //to determine final velocity of the player
         playerRigidbody.linearVelocity = movementVelocity;
     }
     
