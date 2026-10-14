@@ -65,4 +65,10 @@ public class AnimatorManager : MonoBehaviour
         animator.SetFloat(vertical, snappedVertical, 0.1f, Time.deltaTime);
     }
 
+    public void PlayTargetAnimation(string targetAnim, bool isInteracting)
+    {
+        animator.SetBool("isInteracting", isInteracting);
+        animator.CrossFade(targetAnim, 0.2f);
+    }
+
 }

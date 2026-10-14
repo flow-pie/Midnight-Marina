@@ -5,12 +5,16 @@ public class PlayerManager : MonoBehaviour
   InputManager inputManager;
   PlayerMovement playerMovement;
   CameraManager cameraManager;
+  Animator animator;
+
+  public bool isInteracting;
 
   void Awake()
   {
     inputManager = GetComponent<InputManager>();
     playerMovement = GetComponent<PlayerMovement>();
     cameraManager = FindAnyObjectByType<CameraManager>();
+    animator = GetComponent<Animator>();
   }
 
   void Update()
@@ -22,5 +26,10 @@ public class PlayerManager : MonoBehaviour
   void FixedUpdate()
   {
     playerMovement.handleAllMovement();
+  }
+
+  void LateUpdate()
+  {
+    isInteracting = animator.GetBool("isInteracting");
   }
 }
