@@ -38,7 +38,24 @@ public class PlayerMovement : MonoBehaviour
         playerManager = GetComponent<PlayerManager>();
         playerRigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<AnimatorManager>();
-        cameraObject = Camera.main.transform;
+        
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.allCameras.Length > 0 ? Camera.allCameras[0] : null;
+        }
+        if (mainCamera == null)
+        {
+            mainCamera = FindAnyObjectByType<Camera>();
+        }
+        if (mainCamera != null)
+        {
+            cameraObject = mainCamera.transform;
+        }
+        else
+        {
+            Debug.LogError("No camera found in scene. PlayerMovement requires a camera.");
+        }
     }
     public void handleAllMovement()
     {

@@ -21,6 +21,9 @@ public class CameraManager : MonoBehaviour
 
     void Awake()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
         PlayerManager playerManager = FindAnyObjectByType<PlayerManager>();
         if (playerManager != null)  playerTransform = playerManager.transform;
         
