@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class AnimatorManager : MonoBehaviour
 {
-    Animator animator;
+    public Animator animator;
     private int horizontal;
     private int vertical;
 

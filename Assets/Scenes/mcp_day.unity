@@ -572,7 +572,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraManager
   playerTransform: {fileID: 0}
   cameraPivot: {fileID: 1186523162}
-  cameraFollowSpeed: 0.1
+  cameraFollowSpeed: 0
   cameraLookSpeed: 0.1
   cameraPivotSpeed: 1
   lookAngle: 0
@@ -633,7 +633,7 @@ Transform:
   m_GameObject: {fileID: 1186523161}
   serializedVersion: 2
   m_LocalRotation: {x: 0.10452846, y: 0, z: 0, w: 0.9945219}
-  m_LocalPosition: {x: 0, y: 2.5, z: -3.5}
+  m_LocalPosition: {x: 0, y: 2.5, z: -4.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -575610,6 +575610,7 @@ MonoBehaviour:
   cameraInputX: 0
   cameraInputY: 0
   bInput: 0
+  JumpInput: 0
 --- !u!136 &5866666020397528351
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -575657,7 +575658,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &5866666020397528353
@@ -575700,6 +575701,8 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 1
+  jumpHeight: 45
+  gravityIntensity: -45
 --- !u!114 &5866666020397528355
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -575712,6 +575715,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d534a62804f08383b193e1bd1b8ae2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimatorManager
+  animator: {fileID: 0}
 --- !u!4 &5866723030105978406
 Transform:
   m_ObjectHideFlags: 0

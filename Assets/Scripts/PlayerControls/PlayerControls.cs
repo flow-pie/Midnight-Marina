@@ -305,6 +305,16 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""f3822f5a-73c2-4ac4-8cf4-aae9bb4de6ca"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -329,6 +339,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""B"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""08d55ff6-2039-4804-ba40-6dcf2493b852"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6b0125b4-6cf0-489f-8d32-ac84c04596d9"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -342,6 +374,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // PlayActions
         m_PlayActions = asset.FindActionMap("PlayActions", throwIfNotFound: true);
         m_PlayActions_B = m_PlayActions.FindAction("B", throwIfNotFound: true);
+        m_PlayActions_Jump = m_PlayActions.FindAction("Jump", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -531,6 +564,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_PlayActions;
     private List<IPlayActionsActions> m_PlayActionsActionsCallbackInterfaces = new List<IPlayActionsActions>();
     private readonly InputAction m_PlayActions_B;
+    private readonly InputAction m_PlayActions_Jump;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayActions".
     /// </summary>
@@ -546,6 +580,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "PlayActions/B".
         /// </summary>
         public InputAction @B => m_Wrapper.m_PlayActions_B;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayActions/Jump".
+        /// </summary>
+        public InputAction @Jump => m_Wrapper.m_PlayActions_Jump;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -575,6 +613,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @B.started += instance.OnB;
             @B.performed += instance.OnB;
             @B.canceled += instance.OnB;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         /// <summary>
@@ -589,6 +630,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @B.started -= instance.OnB;
             @B.performed -= instance.OnB;
             @B.canceled -= instance.OnB;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         /// <summary>
@@ -658,5 +702,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnB(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnJump(InputAction.CallbackContext context);
     }
 }

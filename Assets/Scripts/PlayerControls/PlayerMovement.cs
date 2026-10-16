@@ -5,7 +5,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Scripts References")]
     InputManager inputManager;
     PlayerManager playerManager;
-    AnimatorManager animator;
+    AnimatorManager animatorManager;
 
 
     [Header("Movement Variables")]
@@ -31,13 +31,17 @@ public class PlayerMovement : MonoBehaviour
     public float rayCastHeightOffset = 0.5f;
     public LayerMask groundLayer;
 
+    [Header("Jump Variables")]
+    public float jumpHeight = 4f;
+    public float gravityIntensity = -15f;
+    private bool isJumping;
 
     void Awake()
     {
         inputManager = GetComponent<InputManager>();
         playerManager = GetComponent<PlayerManager>();
         playerRigidbody = GetComponent<Rigidbody>();
-        animator = GetComponent<AnimatorManager>();
+        animatorManager = GetComponent<AnimatorManager>();
         
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
@@ -62,6 +66,8 @@ public class PlayerMovement : MonoBehaviour
         HandleFallingAndLanding();
 
         if(playerManager.isInteracting) return;
+        
+        if(isJumping) return;
 
         HandleMovement();
         HandleRotation();
@@ -69,6 +75,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        if(isJumping) return;
+
         movementDirection = cameraObject.forward * inputManager.verticalInput 
             +  cameraObject.right * inputManager.horizontalInput;
 
@@ -95,6 +103,8 @@ public class PlayerMovement : MonoBehaviour
     
     private void HandleRotation()
     {
+        if(isJumping) return;
+
         Vector3 targetDirection = Vector3.zero;
 
         //calculate the target direction based on camera orientation and player input
@@ -124,11 +134,11 @@ public class PlayerMovement : MonoBehaviour
         rayCastOrigin.y += rayCastHeightOffset;
         targetPosition = transform.position;
 
-        if(!isGrounded )
+        if(!isGrounded && !isJumping)
         {
             if(!playerManager.isInteracting)
             {
-                animator.PlayTargetAnimation("Falling", true);
+                animatorManager.PlayTargetAnimation("Falling", true);
             }
         }
         inAirTimer += Time.deltaTime;
@@ -139,7 +149,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if(!isGrounded && playerManager.isInteracting)
             {
-                animator.PlayTargetAnimation("Landing", true);
+                animatorManager.PlayTargetAnimation("Landing", true);
             }
             Vector3 rayCastHitPoint = hit.point;
             targetPosition.y = rayCastHitPoint.y;
@@ -148,6 +158,38 @@ public class PlayerMovement : MonoBehaviour
         } else {
             isGrounded = false;
         }
+
+        if(isGrounded && !isJumping)
+        {
+            if(playerManager.isInteracting || inputManager.moveAmount > 0)
+            {
+                transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime / 0.1f);
+            } else {
+                transform.position = targetPosition;
+            }
+        }
+    }
+
+    public void HandleJumping()
+    {
+        if(isGrounded)
+        {
+            animatorManager.animator.SetBool("isJumping", true);
+            animatorManager.PlayTargetAnimation("Jumping", false);
+
+            float jumpVelocity = Mathf.Sqrt(-2 * gravityIntensity * jumpHeight);
+            Vector3 playerVelocity = movementDirection;
+            playerVelocity.y = jumpVelocity;
+            playerRigidbody.linearVelocity = playerVelocity;
+
+            isJumping = false;
+
+        }
+    }
+
+    public void SetIsJumping(bool value)
+    {
+        isJumping = value;
     }
 
 }

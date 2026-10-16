@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class InputManager : MonoBehaviour
@@ -14,7 +15,9 @@ public class InputManager : MonoBehaviour
     public float cameraInputX;
     public float cameraInputY;
 
+    [Header("Input Buttons Flags")]
     public bool bInput;
+    public bool JumpInput;
 
     void Awake()
     {
@@ -35,6 +38,9 @@ public class InputManager : MonoBehaviour
 
             playerControls.PlayActions.B.performed += i => bInput = true;
             playerControls.PlayActions.B.canceled += i => bInput = false;
+
+            playerControls.PlayActions.Jump.performed += i => JumpInput = true;
+            playerControls.PlayActions.Jump.canceled += i => JumpInput = false;
         }
 
         playerControls.Enable();
@@ -48,7 +54,19 @@ public class InputManager : MonoBehaviour
     {
         HandleMovementInput();
         HandleSprintingInput();
+        HandleJumpInput();
     }
+
+    private void HandleJumpInput()
+    {
+        if(JumpInput)
+        {
+            JumpInput = false;
+            playerMovement.SetIsJumping(true);
+            playerMovement.HandleJumping();
+        }
+    }
+
     private void HandleMovementInput()
     {
         verticalInput = movementInput.y;
