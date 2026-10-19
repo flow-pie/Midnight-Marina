@@ -309,11 +309,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AmbientBoost: 0.25
     - _Cutoff: 0.5
     - _ShadowOffsetScale: 1
     - _ShadowStrength: 0.8
+    - _Sheen: 0.15
     - _SquashAmount: 1
+    - _Translucency: 0.7
     - _TranslucencyViewDependency: 0.7
+    - _Wrap: 0.5
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Scale: {r: 1, g: 1, b: 1, a: 1}
